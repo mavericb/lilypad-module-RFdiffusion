@@ -18,6 +18,8 @@ RUN apt-get -q update \
     curl \
     iotop \
     htop \
+    dstat \
+    lsof \
     && python3 -m pip install -q -U --no-cache-dir pip \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get autoremove -y \
@@ -29,8 +31,10 @@ RUN git clone https://github.com/RosettaCommons/RFdiffusion.git /app/RFdiffusion
 # Set working directory to the cloned repository
 WORKDIR /app/RFdiffusion
 
-# Install Python packages with verbose output
-RUN pip3 install -v --no-cache-dir \
+# Install Python packages with verbose output and timing
+RUN set -x \
+    && start_time=$(date +%s) \
+    && pip3 install -v --no-cache-dir \
     dgl==1.0.2+cu116 -f https://data.dgl.ai/wheels/cu116/repo.html \
     torch==1.12.1+cu116 --extra-index-url https://download.pytorch.org/whl/cu116 \
     e3nn==0.3.3 \
@@ -41,14 +45,18 @@ RUN pip3 install -v --no-cache-dir \
     hydra-core==1.3.2 \
     pyrsistent==0.19.3 \
     /app/RFdiffusion/env/SE3Transformer \
-    && pip3 install -v --no-cache-dir /app/RFdiffusion --no-deps
+    && pip3 install -v --no-cache-dir /app/RFdiffusion --no-deps \
+    && end_time=$(date +%s) \
+    && echo "Time taken for pip install: $((end_time - start_time)) seconds"
 
 # Set environment variable
 ENV DGLBACKEND="pytorch"
 
-# Download models with progress tracking
-RUN mkdir -p /app/models && \
-    for url in \
+# Download models with progress tracking and timing
+RUN set -x \
+    && mkdir -p /app/models \
+    && start_time=$(date +%s) \
+    && for url in \
     http://files.ipd.uw.edu/pub/RFdiffusion/6f5902ac237024bdd0c176cb93063dc4/Base_ckpt.pt \
     http://files.ipd.uw.edu/pub/RFdiffusion/e29311f6f1bf1af907f9ef9f44b8328b/Complex_base_ckpt.pt \
     http://files.ipd.uw.edu/pub/RFdiffusion/60f09a193fb5e5ccdc4980417708dbab/Complex_Fold_base_ckpt.pt \
@@ -57,26 +65,32 @@ RUN mkdir -p /app/models && \
     http://files.ipd.uw.edu/pub/RFdiffusion/5532d2e1f3a4738decd58b19d633b3c3/ActiveSite_ckpt.pt \
     http://files.ipd.uw.edu/pub/RFdiffusion/12fc204edeae5b57713c5ad7dcb97d39/Base_epoch8_ckpt.pt; \
     do \
-        echo "Downloading $(basename $url)..." && \
-        wget -P /app/models --progress=bar:force:noscroll $url; \
-    done
+        echo "Downloading $(basename $url)..." \
+        && wget -P /app/models --progress=bar:force:noscroll $url; \
+    done \
+    && end_time=$(date +%s) \
+    && echo "Time taken for downloads: $((end_time - start_time)) seconds" \
+    && du -sh /app/models/*
 
-# Copy additional files with verbose output
-COPY --verbose Dockerfile /app/Dockerfile
-COPY --verbose start.sh /app/start.sh
+# Copy additional files
+COPY Dockerfile /app/Dockerfile
+COPY start.sh /app/start.sh
 
 # Make start.sh executable
 RUN chmod +x /app/start.sh
 
 # Add a step to print system information
-RUN echo "System Information:" && \
-    uname -a && \
-    cat /proc/cpuinfo | grep "model name" | head -n 1 && \
-    free -h && \
-    df -h
+RUN echo "System Information:" \
+    && uname -a \
+    && cat /proc/cpuinfo | grep "model name" | head -n 1 \
+    && free -h \
+    && df -h
 
 # Set the entrypoint
 ENTRYPOINT ["/app/start.sh"]
+
+# Usage Instructions:
+# [Le istruzioni rimangono le stesse]
 
 
 # Usage Instructions:
