@@ -56,7 +56,6 @@ RUN mkdir -p /app/models && \
 
 # Copy additional files
 COPY Dockerfile /app/Dockerfile
-COPY main.py /app/main.py
 COPY start.sh /app/start.sh
 
 # Make start.sh executable
