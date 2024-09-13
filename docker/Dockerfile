@@ -12,10 +12,10 @@ WORKDIR /app
 RUN apt-get -q update \
     && apt-get install --no-install-recommends -y \
     git \
-    python3.9 \
+    python3 \
     python3-pip \
     wget \
-    && python3.9 -m pip install -q -U --no-cache-dir pip \
+    && python3 -m pip install -q -U --no-cache-dir pip \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get autoremove -y \
     && apt-get clean
@@ -27,7 +27,7 @@ RUN git clone https://github.com/RosettaCommons/RFdiffusion.git /app/RFdiffusion
 WORKDIR /app/RFdiffusion
 
 # Install Python packages
-RUN pip install -q --no-cache-dir \
+RUN pip3 install -q --no-cache-dir \
     dgl==1.0.2+cu116 -f https://data.dgl.ai/wheels/cu116/repo.html \
     torch==1.12.1+cu116 --extra-index-url https://download.pytorch.org/whl/cu116 \
     e3nn==0.3.3 \
@@ -38,7 +38,7 @@ RUN pip install -q --no-cache-dir \
     hydra-core==1.3.2 \
     pyrsistent==0.19.3 \
     /app/RFdiffusion/env/SE3Transformer \
-    && pip install --no-cache-dir /app/RFdiffusion --no-deps
+    && pip3 install --no-cache-dir /app/RFdiffusion --no-deps
 
 # Set environment variable
 ENV DGLBACKEND="pytorch"
