@@ -8,13 +8,16 @@ ENV PYTHONUNBUFFERED=1
 # Set working directory
 WORKDIR /app
 
-# Install git and other dependencies
+# Install git, other dependencies, and diagnostic tools
 RUN apt-get -q update \
     && apt-get install --no-install-recommends -y \
     git \
     python3 \
     python3-pip \
     wget \
+    curl \
+    iotop \
+    htop \
     && python3 -m pip install -q -U --no-cache-dir pip \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get autoremove -y \
@@ -26,8 +29,8 @@ RUN git clone https://github.com/RosettaCommons/RFdiffusion.git /app/RFdiffusion
 # Set working directory to the cloned repository
 WORKDIR /app/RFdiffusion
 
-# Install Python packages
-RUN pip3 install -q --no-cache-dir \
+# Install Python packages with verbose output
+RUN pip3 install -v --no-cache-dir \
     dgl==1.0.2+cu116 -f https://data.dgl.ai/wheels/cu116/repo.html \
     torch==1.12.1+cu116 --extra-index-url https://download.pytorch.org/whl/cu116 \
     e3nn==0.3.3 \
@@ -38,31 +41,43 @@ RUN pip3 install -q --no-cache-dir \
     hydra-core==1.3.2 \
     pyrsistent==0.19.3 \
     /app/RFdiffusion/env/SE3Transformer \
-    && pip3 install --no-cache-dir /app/RFdiffusion --no-deps
+    && pip3 install -v --no-cache-dir /app/RFdiffusion --no-deps
 
 # Set environment variable
 ENV DGLBACKEND="pytorch"
 
-# Download models
+# Download models with progress tracking
 RUN mkdir -p /app/models && \
-    wget -P /app/models \
+    for url in \
     http://files.ipd.uw.edu/pub/RFdiffusion/6f5902ac237024bdd0c176cb93063dc4/Base_ckpt.pt \
     http://files.ipd.uw.edu/pub/RFdiffusion/e29311f6f1bf1af907f9ef9f44b8328b/Complex_base_ckpt.pt \
     http://files.ipd.uw.edu/pub/RFdiffusion/60f09a193fb5e5ccdc4980417708dbab/Complex_Fold_base_ckpt.pt \
     http://files.ipd.uw.edu/pub/RFdiffusion/74f51cfb8b440f50d70878e05361d8f0/InpaintSeq_ckpt.pt \
     http://files.ipd.uw.edu/pub/RFdiffusion/76d00716416567174cdb7ca96e208296/InpaintSeq_Fold_ckpt.pt \
     http://files.ipd.uw.edu/pub/RFdiffusion/5532d2e1f3a4738decd58b19d633b3c3/ActiveSite_ckpt.pt \
-    http://files.ipd.uw.edu/pub/RFdiffusion/12fc204edeae5b57713c5ad7dcb97d39/Base_epoch8_ckpt.pt
+    http://files.ipd.uw.edu/pub/RFdiffusion/12fc204edeae5b57713c5ad7dcb97d39/Base_epoch8_ckpt.pt; \
+    do \
+        echo "Downloading $(basename $url)..." && \
+        wget -P /app/models --progress=bar:force:noscroll $url; \
+    done
 
-# Copy additional files
-COPY Dockerfile /app/Dockerfile
-COPY start.sh /app/start.sh
+# Copy additional files with verbose output
+COPY --verbose Dockerfile /app/Dockerfile
+COPY --verbose start.sh /app/start.sh
 
 # Make start.sh executable
 RUN chmod +x /app/start.sh
 
+# Add a step to print system information
+RUN echo "System Information:" && \
+    uname -a && \
+    cat /proc/cpuinfo | grep "model name" | head -n 1 && \
+    free -h && \
+    df -h
+
 # Set the entrypoint
 ENTRYPOINT ["/app/start.sh"]
+
 
 # Usage Instructions:
 # 1. Ensure Dockerfile, main.py, requirements.txt, and start.sh are in the same directory
