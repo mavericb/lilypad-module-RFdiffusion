@@ -44,6 +44,7 @@ RUN set -x \
     decorator==5.1.0 \
     hydra-core==1.3.2 \
     pyrsistent==0.19.3 \
+    numpy==1.26.4 \
     /app/RFdiffusion/env/SE3Transformer \
     && pip3 install -v --no-cache-dir /app/RFdiffusion --no-deps \
     && end_time=$(date +%s) \
