@@ -228,5 +228,8 @@ RUN echo "System Information:" \
 
 RUN cp -r /app/RFdiffusion/examples /app/venv/lib/python3.10/site-packages/
 
+RUN mkdir -p /app/inputs \
+    && wget -O /app/inputs/5TPN.pdb https://files.rcsb.org/view/5TPN.pdb
+
 # Set the entrypoint
 ENTRYPOINT ["/app/start.sh"]

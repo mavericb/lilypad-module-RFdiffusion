@@ -48,9 +48,9 @@ fi
 # Set default values for environment variables if they are not set
 : ${OUTPUT_PREFIX:="/app/outputs/default_output"}
 : ${MODEL_DIRECTORY:="/app/venv/lib/python3.10/site-packages/models"}
-: ${INPUT_PDB:="/app/venv/lib/python3.10/site-packages/examples/input_pdbs/1qys.pdb"}
+: ${INPUT_PDB:="/app/inputs/5TPN.pdb"}
 : ${NUM_DESIGNS:="3"}
-: ${CONTIGS:="A1-10/20-30/40-50"}
+: ${CONTIGS:="10-40/A163-181/10-40"}
 
 # Print the values being used
 echo "Using the following parameters:"
