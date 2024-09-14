@@ -79,5 +79,13 @@ else
     eval $CMD "$@"
 fi
 
-# Add any cleanup or final tasks here
-echo "RFdiffusion task completed."
+# Print output information
+echo "RFdiffusion task completed. Output files:"
+for file in ${OUTPUT_PREFIX}*; do
+    echo "----------------------------------------"
+    echo "Contents of $file:"
+    cat "$file"
+    echo "----------------------------------------"
+done
+
+echo "All output files have been displayed."
