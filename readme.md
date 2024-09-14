@@ -61,13 +61,13 @@ rm -rf /home/lily/.bacalhau
 
 3. Test the remote image locally:
    ```bash
-   docker run mavericb/rfdiffusion:lilypad-v20240914211205 --network none
+   docker run --network none mavericb/rfdiffusion:lilypad-v20240914211205
    ```
 
 4. Update template of lilypad and run on local test:
    - Update the Image field in the template:
      ```json
-     "Image": "mavericb/ollama:llama3-8b-lilypad-v20240904173555"
+     "Image": "mavericb/rfdiffusion:lilypad-v20240914211205"
      ```
    - Run the test:
      ```bash
