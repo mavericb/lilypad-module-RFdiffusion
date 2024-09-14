@@ -169,9 +169,29 @@ RUN pip install -q --no-cache-dir \
 # Set environment variable
 ENV DGLBACKEND="pytorch"
 
+## Download models with progress tracking and timing
+#RUN set -x \
+#    && mkdir -p /app/models \
+#    && start_time=$(date +%s) \
+#    && for url in \
+#    http://files.ipd.uw.edu/pub/RFdiffusion/6f5902ac237024bdd0c176cb93063dc4/Base_ckpt.pt \
+#    http://files.ipd.uw.edu/pub/RFdiffusion/e29311f6f1bf1af907f9ef9f44b8328b/Complex_base_ckpt.pt \
+#    http://files.ipd.uw.edu/pub/RFdiffusion/60f09a193fb5e5ccdc4980417708dbab/Complex_Fold_base_ckpt.pt \
+#    http://files.ipd.uw.edu/pub/RFdiffusion/74f51cfb8b440f50d70878e05361d8f0/InpaintSeq_ckpt.pt \
+#    http://files.ipd.uw.edu/pub/RFdiffusion/76d00716416567174cdb7ca96e208296/InpaintSeq_Fold_ckpt.pt \
+#    http://files.ipd.uw.edu/pub/RFdiffusion/5532d2e1f3a4738decd58b19d633b3c3/ActiveSite_ckpt.pt \
+#    http://files.ipd.uw.edu/pub/RFdiffusion/12fc204edeae5b57713c5ad7dcb97d39/Base_epoch8_ckpt.pt; \
+#    do \
+#        echo "Downloading $(basename $url)..." \
+#        && wget -P /app/models --progress=bar:force:noscroll $url; \
+#    done \
+#    && end_time=$(date +%s) \
+#    && echo "Time taken for downloads: $((end_time - start_time)) seconds" \
+#    && du -sh /app/models/*
+
 # Download models with progress tracking and timing
 RUN set -x \
-    && mkdir -p /app/models \
+    && mkdir -p /app/venv/lib/python3.10/site-packages/rfdiffusion/models \
     && start_time=$(date +%s) \
     && for url in \
     http://files.ipd.uw.edu/pub/RFdiffusion/6f5902ac237024bdd0c176cb93063dc4/Base_ckpt.pt \
@@ -183,11 +203,15 @@ RUN set -x \
     http://files.ipd.uw.edu/pub/RFdiffusion/12fc204edeae5b57713c5ad7dcb97d39/Base_epoch8_ckpt.pt; \
     do \
         echo "Downloading $(basename $url)..." \
-        && wget -P /app/models --progress=bar:force:noscroll $url; \
+        && wget -P /app/venv/lib/python3.10/site-packages/rfdiffusion/models --progress=bar:force:noscroll $url; \
     done \
     && end_time=$(date +%s) \
     && echo "Time taken for downloads: $((end_time - start_time)) seconds" \
-    && du -sh /app/models/*
+    && du -sh /app/venv/lib/python3.10/site-packages/rfdiffusion/models/*
+
+# Verifica la presenza dei modelli nel percorso corretto
+RUN ls -l /app/venv/lib/python3.10/site-packages/rfdiffusion/models/
+
 
 # Copy additional files
 COPY Dockerfile /app/Dockerfile
