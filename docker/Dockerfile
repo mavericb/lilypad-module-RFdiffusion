@@ -226,5 +226,7 @@ RUN echo "System Information:" \
     && free -h \
     && df -h
 
+RUN cp -r /app/RFdiffusion/examples /app/venv/lib/python3.10/site-packages/
+
 # Set the entrypoint
 ENTRYPOINT ["/app/start.sh"]
