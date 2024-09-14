@@ -35,7 +35,7 @@ if [ ! -d "/app/venv/lib/python3.10/site-packages/models" ]; then
     exit 1
 fi
 
-if [ ! -d "/app/inputs" ]; then
+if [ ! -d "/app/venv/lib/python3.10/site-packages/examples" ]; then
     echo "Error: inputs directory not found!"
     exit 1
 fi
