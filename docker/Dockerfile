@@ -73,11 +73,11 @@ ENV DGLBACKEND="pytorch"
 #    && echo "Time taken for downloads: $((end_time - start_time)) seconds" \
 #    && du -sh /app/models/*
 
-# Install curl if not already present
+# Installa curl se non è già presente
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# Create a script for downloading
-RUN echo '#!/bin/bash \
+# Crea uno script per il download
+RUN echo '#!/bin/sh \
     url="$1" \
     output_dir="/app/models" \
     filename=$(basename "$url") \
@@ -91,35 +91,32 @@ RUN echo '#!/bin/bash \
     fi' > /app/download_file.sh \
     && chmod +x /app/download_file.sh
 
-# Download models with progress tracking and timing
+# Scarica i modelli con tracciamento dei progressi e tempistica
 RUN set -x \
     && mkdir -p /app/models \
     && start_time=$(date +%s) \
-    && urls=( \
-        "http://files.ipd.uw.edu/pub/RFdiffusion/6f5902ac237024bdd0c176cb93063dc4/Base_ckpt.pt" \
-        "http://files.ipd.uw.edu/pub/RFdiffusion/e29311f6f1bf1af907f9ef9f44b8328b/Complex_base_ckpt.pt" \
-        "http://files.ipd.uw.edu/pub/RFdiffusion/60f09a193fb5e5ccdc4980417708dbab/Complex_Fold_base_ckpt.pt" \
-        "http://files.ipd.uw.edu/pub/RFdiffusion/74f51cfb8b440f50d70878e05361d8f0/InpaintSeq_ckpt.pt" \
-        "http://files.ipd.uw.edu/pub/RFdiffusion/76d00716416567174cdb7ca96e208296/InpaintSeq_Fold_ckpt.pt" \
-        "http://files.ipd.uw.edu/pub/RFdiffusion/5532d2e1f3a4738decd58b19d633b3c3/ActiveSite_ckpt.pt" \
-        "http://files.ipd.uw.edu/pub/RFdiffusion/12fc204edeae5b57713c5ad7dcb97d39/Base_epoch8_ckpt.pt" \
-    ) \
-    && for url in "${urls[@]}"; do \
-        /app/download_file.sh "$url" || exit 1 \
+    && (echo "http://files.ipd.uw.edu/pub/RFdiffusion/6f5902ac237024bdd0c176cb93063dc4/Base_ckpt.pt" && \
+        echo "http://files.ipd.uw.edu/pub/RFdiffusion/e29311f6f1bf1af907f9ef9f44b8328b/Complex_base_ckpt.pt" && \
+        echo "http://files.ipd.uw.edu/pub/RFdiffusion/60f09a193fb5e5ccdc4980417708dbab/Complex_Fold_base_ckpt.pt" && \
+        echo "http://files.ipd.uw.edu/pub/RFdiffusion/74f51cfb8b440f50d70878e05361d8f0/InpaintSeq_ckpt.pt" && \
+        echo "http://files.ipd.uw.edu/pub/RFdiffusion/76d00716416567174cdb7ca96e208296/InpaintSeq_Fold_ckpt.pt" && \
+        echo "http://files.ipd.uw.edu/pub/RFdiffusion/5532d2e1f3a4738decd58b19d633b3c3/ActiveSite_ckpt.pt" && \
+        echo "http://files.ipd.uw.edu/pub/RFdiffusion/12fc204edeae5b57713c5ad7dcb97d39/Base_epoch8_ckpt.pt") | \
+    while read url; do \
+        /app/download_file.sh "$url" || exit 1; \
     done \
     && end_time=$(date +%s) \
-    && echo "Time taken for downloads: $((end_time - start_time)) seconds" \
+    && echo "Tempo impiegato per i download: $((end_time - start_time)) secondi" \
     && du -sh /app/models/*
 
-# Verify that all files were downloaded successfully
+# Verifica che tutti i file siano stati scaricati con successo
 RUN set -x \
     && expected_files=7 \
     && actual_files=$(ls /app/models | wc -l) \
     && if [ "$actual_files" -ne "$expected_files" ]; then \
-        echo "Error: Expected $expected_files files, but found $actual_files" \
-        && exit 1 \
+        echo "Errore: Previsti $expected_files file, ma trovati $actual_files" \
+        && exit 1; \
     fi
-
 # Copy additional files
 COPY Dockerfile /app/Dockerfile
 COPY start.sh /app/start.sh
