@@ -1,7 +1,55 @@
+##!/bin/bash
+#
+#echo "pod2 started"
+#
+#if [[ $PUBLIC_KEY ]]
+#then
+#    mkdir -p ~/.ssh
+#    chmod 700 ~/.ssh
+#    cd ~/.ssh
+#    echo $PUBLIC_KEY >> authorized_keys
+#    chmod 700 -R ~/.ssh
+#    cd /
+#    service ssh start
+#fi
+#
+#set -e
+#
+## Print some information about the environment
+#echo "Starting RFdiffusion container..."
+#echo "Python version:"
+#python3 --version
+#echo "CUDA version:"
+#nvcc --version
+#echo "PyTorch version:"
+#python3 -c "import torch; print(torch.__version__)"
+#echo "CUDA available:"
+#python3 -c "import torch; print(torch.cuda.is_available())"
+#
+## Check if we have command line arguments
+#if [ $# -eq 0 ]; then
+#    echo "No arguments provided. Running default inference script..."
+#    python3 scripts/run_inference.py
+#else
+#    echo "Running with provided arguments..."
+#    python3 scripts/run_inference.py "$@"
+#fi
+#
+## You can add any other initialization or check here
+## For example, checking if necessary files exist:
+#if [ ! -d "/app/models" ]; then
+#    echo "Error: models directory not found!"
+#    exit 1
+#fi
+#
+## Add any cleanup or final tasks here
+#echo "RFdiffusion task completed."
+
 #!/bin/bash
 
-echo "pod2 started"
+echo "RFdiffusion container started"
 
+# Setup SSH if public key is provided
 if [[ $PUBLIC_KEY ]]
 then
     mkdir -p ~/.ssh
@@ -15,31 +63,52 @@ fi
 
 set -e
 
+# Activate the virtual environment
+source /app/venv/bin/activate
+
 # Print some information about the environment
-echo "Starting RFdiffusion container..."
 echo "Python version:"
-python3 --version
+python --version
 echo "CUDA version:"
 nvcc --version
 echo "PyTorch version:"
-python3 -c "import torch; print(torch.__version__)"
+python -c "import torch; print(torch.__version__)"
 echo "CUDA available:"
-python3 -c "import torch; print(torch.cuda.is_available())"
+python -c "import torch; print(torch.cuda.is_available())"
 
-# Check if we have command line arguments
-if [ $# -eq 0 ]; then
-    echo "No arguments provided. Running default inference script..."
-    python3 scripts/run_inference.py
-else
-    echo "Running with provided arguments..."
-    python3 scripts/run_inference.py "$@"
-fi
-
-# You can add any other initialization or check here
-# For example, checking if necessary files exist:
+# Check if necessary directories exist
 if [ ! -d "/app/models" ]; then
     echo "Error: models directory not found!"
     exit 1
+fi
+
+if [ ! -d "/app/inputs" ]; then
+    echo "Error: inputs directory not found!"
+    exit 1
+fi
+
+if [ ! -d "/app/outputs" ]; then
+    echo "Error: outputs directory not found!"
+    mkdir -p /app/outputs
+fi
+
+# Prepare the command
+CMD="python /app/RFdiffusion/scripts/run_inference.py"
+
+# Add environment variables to the command if they are set
+[[ ! -z "$OUTPUT_PREFIX" ]] && CMD="$CMD inference.output_prefix=$OUTPUT_PREFIX"
+[[ ! -z "$MODEL_DIRECTORY" ]] && CMD="$CMD inference.model_directory_path=$MODEL_DIRECTORY"
+[[ ! -z "$INPUT_PDB" ]] && CMD="$CMD inference.input_pdb=$INPUT_PDB"
+[[ ! -z "$NUM_DESIGNS" ]] && CMD="$CMD inference.num_designs=$NUM_DESIGNS"
+[[ ! -z "$CONTIGS" ]] && CMD="$CMD contigmap.contigs=[$CONTIGS]"
+
+# Check if we have command line arguments
+if [ $# -eq 0 ]; then
+    echo "No additional arguments provided. Running with environment variables..."
+    eval $CMD
+else
+    echo "Running with provided arguments..."
+    eval $CMD "$@"
 fi
 
 # Add any cleanup or final tasks here
