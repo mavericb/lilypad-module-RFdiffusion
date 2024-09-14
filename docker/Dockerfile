@@ -55,11 +55,11 @@ RUN apt-get -q update \
   git \
   python3.9 \
   python3-pip \
-  && python3.9 -m pip install -q -U --no-cache-dir pip \
+  && python3.9 -m pip3 install -q -U --no-cache-dir pip \
   && rm -rf /var/lib/apt/lists/* \
   && apt-get autoremove -y \
   && apt-get clean \
-  && pip install -q --no-cache-dir \
+  && pip3 install -q --no-cache-dir \
   dgl==1.0.2+cu116 -f https://data.dgl.ai/wheels/cu116/repo.html \
   torch==1.12.1+cu116 --extra-index-url https://download.pytorch.org/whl/cu116 \
   e3nn==0.3.3 \
@@ -71,7 +71,7 @@ RUN apt-get -q update \
   pyrsistent==0.19.3 \
   numpy==1.26.4 \
   /app/RFdiffusion/env/SE3Transformer \
-  && pip install --no-cache-dir /app/RFdiffusion --no-deps
+  && pip3 install --no-cache-dir /app/RFdiffusion --no-deps
 
 # Set environment variable
 ENV DGLBACKEND="pytorch"
