@@ -30,7 +30,7 @@ echo "CUDA available:"
 python -c "import torch; print(torch.cuda.is_available())"
 
 # Check if necessary directories exist
-if [ ! -d "/app/models" ]; then
+if [ ! -d "/app/venv/lib/python3.10/site-packages/models" ]; then
     echo "Error: models directory not found!"
     exit 1
 fi
